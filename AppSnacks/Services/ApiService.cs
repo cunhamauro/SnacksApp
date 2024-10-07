@@ -9,13 +9,15 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Collections;
+using System.Net.Http.Headers;
 
 namespace AppSnacks.Services
 {
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "https://qmmfkv2d-7018.uks1.devtunnels.ms/";
+        private readonly string _baseUrl = AppConfig.Url;
         private readonly ILogger<ApiService> _logger;
 
         JsonSerializerOptions _serializerOptions;
@@ -122,5 +124,73 @@ namespace AppSnacks.Services
             }
         }
 
+        public async Task<(List<Category>? Categories, string? ErrorMessage)> GetCategories()
+        {
+            return await GetAsync<List<Category>>("api/categories");
+        }
+
+        public async Task<(List<Product>? Products, string? ErrorMessage)> GetProducts(string productType, string categoryId)
+        {
+            string endpoint = $"api/products?Search={productType}&categoryId={categoryId}";
+
+            return await GetAsync<List<Product>>(endpoint);
+        }
+
+        private async Task<(T? Data, string? ErroMessage)> GetAsync<T>(string endpoint)
+        {
+            try
+            {
+                AddAuthorizationHeader();
+                var response = await _httpClient.GetAsync(AppConfig.Url + endpoint);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    var data = JsonSerializer.Deserialize<T>(responseString, _serializerOptions);
+                    return (data ?? Activator.CreateInstance<T>(), null);
+                }
+                else
+                {
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        string errorMessage = "Unauthorized";
+                        _logger.LogWarning(errorMessage);
+                        return (default, errorMessage);
+                    }
+
+                    string generalErrorMessage = $"Request error: {response.ReasonPhrase}";
+                    _logger.LogError(generalErrorMessage);
+                    return (default, generalErrorMessage);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                string errorMessage = $"Error in HTTP request: {ex.Message}";
+                _logger.LogError(ex, errorMessage);
+                return (default, errorMessage);
+            }
+            catch (JsonException ex)
+            {
+                string errorMessage = $"Error in JSON deserialization: {ex.Message}";
+                _logger.LogError(ex, errorMessage);
+                return (default, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Unexpected error: {ex.Message}";
+                _logger.LogError(ex, errorMessage);
+                return (default, errorMessage);
+            }
+        }
+
+        private void AddAuthorizationHeader()
+        {
+            var token = Preferences.Get("accesstoken", string.Empty);
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+        }
     }
 }
