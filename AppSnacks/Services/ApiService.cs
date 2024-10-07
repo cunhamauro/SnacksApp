@@ -15,7 +15,7 @@ namespace AppSnacks.Services
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "";
+        private readonly string _baseUrl = "https://qmmfkv2d-7018.uks1.devtunnels.ms/";
         private readonly ILogger<ApiService> _logger;
 
         JsonSerializerOptions _serializerOptions;

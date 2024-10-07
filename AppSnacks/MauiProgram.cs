@@ -1,4 +1,5 @@
 ﻿using AppSnacks.Services;
+using AppSnacks.Validations;
 using Microsoft.Extensions.Logging;
 
 namespace AppSnacks
@@ -21,6 +22,8 @@ namespace AppSnacks
 #endif
             builder.Services.AddHttpClient();
             builder.Services.AddSingleton<ApiService>();
+            builder.Services.AddSingleton<IValidator, Validator>();
+
             return builder.Build();
         }
     }
