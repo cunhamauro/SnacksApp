@@ -14,7 +14,7 @@ namespace AppSnacks.Models
 
         public decimal Price { get; set; }
 
-        public string? Detail {  get; set; }
+        public string? Details {  get; set; }
 
         public string? ImageUrl {  get; set; }
 
