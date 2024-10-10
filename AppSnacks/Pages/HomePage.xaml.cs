@@ -139,11 +139,31 @@ public partial class HomePage : ContentPage
 
     private void CvMostSold_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-
+        if (sender is CollectionView collectionView)
+        {
+            NavigateToProductDetailsPage(collectionView, e);
+        }
     }
 
     private void CvPopular_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (sender is CollectionView collectionView)
+        {
+            NavigateToProductDetailsPage(collectionView, e);
+        }
+    }
 
+    private void NavigateToProductDetailsPage(CollectionView collectionView, SelectionChangedEventArgs e)
+    {
+        var currentSelection = e.CurrentSelection.FirstOrDefault() as Product;
+
+        if (currentSelection is null)
+        {
+            return;
+        }
+
+        Navigation.PushAsync(new ProductDetailsPage(currentSelection.Id, currentSelection.Name!, _apiService, _validator));
+
+        collectionView.SelectedItem = null;
     }
 }

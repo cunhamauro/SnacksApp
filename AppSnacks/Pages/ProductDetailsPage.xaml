@@ -45,7 +45,7 @@
                     x:Name="BtnRemove" 
                     Clicked="BtnRemove_Clicked"/>
 
-            <Label x:Name="LblQuantidade"
+            <Label x:Name="LblQuantity"
                    Text="1"
                    FontSize="Large"
                  VerticalTextAlignment="Center" />
