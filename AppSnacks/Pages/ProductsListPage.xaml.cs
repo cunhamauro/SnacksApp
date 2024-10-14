@@ -9,15 +9,16 @@ public partial class ProductsListPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
+    private readonly FavoritesService _favoritesService;
     private int _categoryId;
     private bool _loginPageDisplayed = false;
 
-    public ProductsListPage(int categoryId, string categoryName, ApiService apiService, IValidator validator)
+    public ProductsListPage(int categoryId, string categoryName, ApiService apiService, IValidator validator, FavoritesService favoritesService)
 	{
 		InitializeComponent();
         _apiService = apiService;
         _validator = validator;
-
+        _favoritesService = favoritesService;
         _categoryId = categoryId;
         Title = categoryName ?? "Products";
     }
@@ -53,7 +54,7 @@ public partial class ProductsListPage : ContentPage
     private async Task DisplayLoginPage()
     {
         _loginPageDisplayed = true;
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoritesService));
     }
 
     private void CvProducts_SelectionChanged(object sender, SelectionChangedEventArgs e)

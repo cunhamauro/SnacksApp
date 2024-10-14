@@ -11,18 +11,19 @@ public partial class HomePage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
+    private readonly FavoritesService _favoritesService;
     private bool _isDataLoaded = false;
 
     private bool _loginPageDisplayed = false;
 
-    public HomePage(ApiService apiService, IValidator validator)
+    public HomePage(ApiService apiService, IValidator validator, FavoritesService favoritesService)
     {
         InitializeComponent();
         LblUserName.Text = "Hello," + Preferences.Get("username", string.Empty);
 
         _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
         _validator = validator;
-
+        _favoritesService = favoritesService;
         Title = AppConfig.HomePageTitle;
     }
 
@@ -134,7 +135,7 @@ public partial class HomePage : ContentPage
     private async Task DisplayLoginPage()
     {
         _loginPageDisplayed = true;
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoritesService));
     }
 
 
@@ -146,7 +147,7 @@ public partial class HomePage : ContentPage
 
         Navigation.PushAsync(new ProductsListPage(currentSelection.Id,
             currentSelection.Name!,
-            _apiService, _validator));
+            _apiService, _validator, _favoritesService));
 
         ((CollectionView)sender).SelectedItem = null;
     }

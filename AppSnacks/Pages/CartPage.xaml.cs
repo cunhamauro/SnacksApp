@@ -8,6 +8,7 @@ namespace AppSnacks.Pages;
 public partial class CartPage : ContentPage
 {
     private readonly IValidator _validator;
+    private readonly FavoritesService _favoritesService;
     private readonly ApiService _apiService;
 
     private bool _loginPageDisplayed = false;
@@ -15,10 +16,11 @@ public partial class CartPage : ContentPage
 
     ObservableCollection<ShoppingCartItem> ItemsShoppingCart = new ObservableCollection<ShoppingCartItem>();
 
-    public CartPage(ApiService apiService, IValidator validator)
+    public CartPage(ApiService apiService, IValidator validator, FavoritesService favoritesService)
 	{
 		InitializeComponent();
         _validator = validator;
+        _favoritesService = favoritesService;
         _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
     }
 
@@ -123,7 +125,7 @@ public partial class CartPage : ContentPage
     private async Task DisplayLoginPage()
     {
         _loginPageDisplayed = true;
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoritesService));
     }
 
     private void UpdateTotalPrice()
