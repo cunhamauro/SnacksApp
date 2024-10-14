@@ -1,6 +1,9 @@
 using AppSnacks.Models;
 using AppSnacks.Services;
 using AppSnacks.Validations;
+using System.Net;
+using System.Text.Json;
+using System.Text;
 
 namespace AppSnacks.Pages;
 
@@ -8,6 +11,7 @@ public partial class HomePage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
+    private bool _isDataLoaded = false;
 
     private bool _loginPageDisplayed = false;
 
@@ -26,9 +30,20 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
 
-        await GetListCategories();
-        await GetMostSold();
-        await GetPopular();
+        if (!_isDataLoaded)
+        {
+            await LoadDataAsync();
+            _isDataLoaded = true;
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var categoriesTask = GetListCategories();
+        var mostSoldTask = GetMostSold();
+        var popularTask = GetPopular();
+
+        await Task.WhenAll(categoriesTask, mostSoldTask, popularTask);
     }
 
     private async Task<IEnumerable<Product>> GetPopular()

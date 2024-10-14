@@ -31,6 +31,33 @@ namespace AppSnacks.Services
             return await GetAsync<List<ShoppingCartItem>>(endpoint);
         }
 
+        public async Task<ApiResponse<bool>> ConfirmOrder(Order order)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(order, _serializerOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await PostRequest("api/Orders", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorMessage = response.StatusCode == HttpStatusCode.Unauthorized
+                        ? "Unauthorized"
+                        : $"Error in HTTP request: {response.StatusCode}";
+
+                    _logger.LogError($"Error in HTTP request: {response.StatusCode}");
+                    return new ApiResponse<bool> { ErrorMessage = errorMessage };
+                }
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error processing order: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
+            }
+        }
+
         public async Task<ApiResponse<bool>> AddItemToCart(ShoppingCart cart)
         {
             try

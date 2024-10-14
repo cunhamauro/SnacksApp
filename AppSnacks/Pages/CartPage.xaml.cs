@@ -11,6 +11,7 @@ public partial class CartPage : ContentPage
     private readonly ApiService _apiService;
 
     private bool _loginPageDisplayed = false;
+    private bool _isNavigatingToEmptyCartPage = false;
 
     ObservableCollection<ShoppingCartItem> ItemsShoppingCart = new ObservableCollection<ShoppingCartItem>();
 
@@ -25,8 +26,30 @@ public partial class CartPage : ContentPage
     {
         base.OnAppearing();
 
-        await GetItemsShoppingCart();
+        if (IsNavigatingToEmptyCartPage()) return;
 
+        bool hasItems = await GetItemsShoppingCart();
+
+        if (hasItems)
+        {
+            ShowAddress();
+        }
+        else
+        {
+            await NavigateToEmptyCart();
+        }
+
+    }
+
+    private async Task NavigateToEmptyCart()
+    {
+        LblAddress.Text = string.Empty;
+        _isNavigatingToEmptyCartPage = true;
+        await Navigation.PushAsync(new EmptyCartPage());
+    }
+
+    private void ShowAddress()
+    {
         bool savedAddress = Preferences.ContainsKey("address");
 
         if (savedAddress)
@@ -35,6 +58,7 @@ public partial class CartPage : ContentPage
             string address = Preferences.Get("address", string.Empty);
             string phonenumber = Preferences.Get("phonenumber", string.Empty);
 
+            // Formatar os dados conforme desejado na label
             LblAddress.Text = $"{name}\n{address}\n{phonenumber}";
         }
         else
@@ -43,7 +67,17 @@ public partial class CartPage : ContentPage
         }
     }
 
-    private async Task<IEnumerable<ShoppingCartItem>> GetItemsShoppingCart()
+    private bool IsNavigatingToEmptyCartPage()
+    {
+        if (_isNavigatingToEmptyCartPage)
+        {
+            _isNavigatingToEmptyCartPage = false;
+            return true;
+        }
+        return false;
+    }
+
+    private async Task<bool> GetItemsShoppingCart()
     {
         try
         {
@@ -53,13 +87,13 @@ public partial class CartPage : ContentPage
             if (errorMessage == "Unauthorized" && _loginPageDisplayed)
             {
                 await DisplayLoginPage();
-                return Enumerable.Empty<ShoppingCartItem>();
+                return false;
             }
 
             if (cartItems == null)
             {
                 await DisplayAlert("Error", errorMessage ?? "It was not possible to fetch the products", "OK");
-                return Enumerable.Empty<ShoppingCartItem>();
+                return false;
             }
 
             ItemsShoppingCart.Clear();
@@ -72,12 +106,17 @@ public partial class CartPage : ContentPage
             CvCart.ItemsSource = ItemsShoppingCart;
             UpdateTotalPrice();
 
-            return cartItems;
+            if (!ItemsShoppingCart.Any())
+            {
+                return false;
+            }
+
+            return true;
         }
         catch (Exception ex)
         {
             await DisplayAlert("Error", $"There was an unexpected error: {ex.Message}", "OK");
-            return Enumerable.Empty<ShoppingCartItem>();
+            return false;
         }
     }
 
@@ -146,8 +185,39 @@ public partial class CartPage : ContentPage
         Navigation.PushAsync(new AddressPage());
     }
 
-    private void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
+    private async void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
     {
+        if (ItemsShoppingCart == null || !ItemsShoppingCart.Any())
+        {
+            await DisplayAlert("Warning", "Your shopping cart is empty!", "OK");
+            return;
+        }
 
+        var order = new Order()
+        {
+            Address = LblAddress.Text,
+            UserId = Preferences.Get("userid", 0),
+            Total = Convert.ToDecimal(LblTotalPrice.Text),
+        };
+
+        var response = await _apiService.ConfirmOrder(order);
+
+        if (response.HasError)
+        {
+            if (response.ErrorMessage == "Unauthorized")
+            {
+                await DisplayLoginPage();
+                return;
+
+            }
+            await DisplayAlert("Error", $"Something went wrong: {response.ErrorMessage}", "Cancel");
+            return;
+        }
+
+        ItemsShoppingCart.Clear();
+        LblAddress.Text = "Enter your address";
+        LblTotalPrice.Text = "0.00";
+
+        await Navigation.PushAsync(new OrderConfirmedPage());
     }
 }
