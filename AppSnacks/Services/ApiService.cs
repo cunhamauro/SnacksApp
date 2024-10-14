@@ -1,16 +1,9 @@
 ﻿using AppSnacks.Models;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Net;
-using System.Reflection.Metadata;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Collections;
-using System.Net.Http.Headers;
 
 namespace AppSnacks.Services
 {
@@ -30,6 +23,12 @@ namespace AppSnacks.Services
             {
                 PropertyNameCaseInsensitive = true,
             };
+        }
+
+        public async Task<(List<ShoppingCartItem>? ShoppingCartItems, string? ErrorMessage)> GetShoppingCartItems(int userId)
+        {
+            var endpoint = $"api/ShoppingCartItems/{userId}";
+            return await GetAsync<List<ShoppingCartItem>>(endpoint);
         }
 
         public async Task<ApiResponse<bool>> AddItemToCart(ShoppingCart cart)
@@ -52,7 +51,7 @@ namespace AppSnacks.Services
 
                 return new ApiResponse<bool> { Data = true };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"Error adding item to cart: {ex.Message}");
                 return new ApiResponse<bool>

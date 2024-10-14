@@ -29,7 +29,6 @@ public partial class HomePage : ContentPage
         await GetListCategories();
         await GetMostSold();
         await GetPopular();
-
     }
 
     private async Task<IEnumerable<Product>> GetPopular()
