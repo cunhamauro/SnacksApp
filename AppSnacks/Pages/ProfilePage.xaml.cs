@@ -126,17 +126,18 @@ public partial class ProfilePage : ContentPage
 
     private void MyAccount_Tapped(object sender, TappedEventArgs e)
     {
-
+        Navigation.PushAsync(new MyAccountPage(_apiService));
     }
 
     private void Questions_Tapped(object sender, TappedEventArgs e)
     {
-
+        Navigation.PushAsync(new FaqPage());
     }
 
     private void BtnLogout_Clicked(object sender, EventArgs e)
     {
-
+        Preferences.Set("accesstoken", string.Empty);
+        Application.Current!.MainPage = new NavigationPage(new LoginPage(_apiService, _validator, _favoritesService));
     }
 
     private async Task DisplayLoginPage()
