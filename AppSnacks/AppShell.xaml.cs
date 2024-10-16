@@ -25,7 +25,7 @@ namespace AppSnacks
             var homePage = new HomePage(_apiService, _validator, _favoritesService);
             var cartPage = new CartPage(_apiService, _validator, _favoritesService);
             var favoritesPage = new FavoritesPage(_apiService, _validator, _favoritesService);
-            var profilePage = new ProfilePage(_apiService, _validator);
+            var profilePage = new ProfilePage(_apiService, _validator, _favoritesService);
 
             Items.Add(new TabBar
             {

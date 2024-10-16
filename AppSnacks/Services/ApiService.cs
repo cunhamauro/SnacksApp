@@ -199,6 +199,13 @@ namespace AppSnacks.Services
             return await GetAsync<Product>(endpoint);
         }
 
+        public async Task<(ProfileImage? ProfileImage, string? ErrorMessage)> GetImageProfileUser()
+        {
+            string endpoint = $"api/users/userimage";
+
+            return await GetAsync<ProfileImage>(endpoint);
+        }
+
         private async Task<(T? Data, string? ErroMessage)> GetAsync<T>(string endpoint)
         {
             try
@@ -310,5 +317,30 @@ namespace AppSnacks.Services
             }
         }
 
+        public async Task<ApiResponse<bool>> UploadUserImage(byte[] imageArray)
+        {
+            try
+            {
+                var content = new MultipartFormDataContent();
+                content.Add(new ByteArrayContent(imageArray), "image", "image.jpg");
+                var response = await PostRequest("api/users/uploadimage", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorMessage = response.StatusCode == HttpStatusCode.Unauthorized
+                      ? "Unauthorized"
+                      : $"Error sending HTTP request: {response.StatusCode}";
+
+                    _logger.LogError($"Error sending HTTP request: {response.StatusCode}");
+                    return new ApiResponse<bool> { ErrorMessage = errorMessage };
+                }
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error uploading user image: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
+            }
+        }
     }
 }
