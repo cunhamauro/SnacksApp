@@ -13,6 +13,10 @@ namespace AppSnacks
         public App(ApiService apiService, IValidator validator, FavoritesService favoritesService)
         {
             InitializeComponent();
+
+            // Force light theme
+            UserAppTheme = AppTheme.Light;
+
             _apiService = apiService;
             _validator = validator;
             _favoritesService = favoritesService;
